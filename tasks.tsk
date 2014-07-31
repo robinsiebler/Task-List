@@ -1,0 +1,60 @@
+(lp0
+(itasklist
+Task
+p1
+(dp2
+S'note'
+p3
+VConvert script to GUI
+p4
+sS'priority'
+p5
+S'High'
+p6
+sS'creation_date'
+p7
+S'07/30/2014'
+p8
+sS'id'
+p9
+I1
+sS'tags'
+p10
+VPython Scripting
+p11
+sba(itasklist
+Task
+p12
+(dp13
+g3
+VAdd error handling
+p14
+sg5
+g6
+sg7
+S'07/30/2014'
+p15
+sg9
+I2
+sg10
+VPython Scripting
+p16
+sba(itasklist
+Task
+p17
+(dp18
+g3
+VFix problem with message dialog
+p19
+sg5
+S'Low'
+p20
+sg7
+S'07/30/2014'
+p21
+sg9
+I3
+sg10
+VBug
+p22
+sba.
