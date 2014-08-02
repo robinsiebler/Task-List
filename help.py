@@ -10,9 +10,10 @@ The following actions are available:
 		Delete a task file - delete an unneeded task file
 	Tasks:
 		Add a task - create a new task
-		Modify a task - you can change all aspects of a task 
 		Delete a task - delete a completed or unneeded task
+		Modify a task - you can change all aspects of a task 
 		Search tasks - Search for text or tags
+		Recite: Speak the specified task(s) aloud
 	Order:
 		Sort tasks by number
 		Sort tasks by priority 

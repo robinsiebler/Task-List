@@ -14,6 +14,7 @@ from collections import OrderedDict
 import sys
 import ui
 import help
+import speech
 
 class Menu:
 
@@ -25,6 +26,7 @@ class Menu:
         self.current_task_file = ''
         self.main_view = ''
         self.controls_enabled = False
+        self.speech_rate = 0.3
 
     def display_message(self, message):
         self.message_dialog = ui.load_view('dialogs/message')
@@ -49,6 +51,7 @@ class Menu:
                 self.main_view['button_delete_task'].enabled = True
                 self.main_view['button_modify'].enabled = True
                 self.main_view['button_search'].enabled = True
+                self.main_view['button_speak'].enabled = True
                 self.controls_enabled = True
             for task in tasks:
                 tv_text += '{}: {}\n\tPriority: {}\n\tTags: {}\n'.format(task.id, task.note, task.priority, task.tags)
@@ -107,9 +110,12 @@ class Menu:
 
     def prompt_search(self, sender):
     	"""Prompt the user for a search string."""
-    	
-        self.search_dialog = ui.load_view('dialogs/search_tasks')
-        self.search_dialog.present('sheet')
+    	if self.main_view['button_search'].title == "Show All":
+    		self.main_view['button_search'].title = "Search"
+    		self.show_tasks(None)
+    	else:
+        	self.search_dialog = ui.load_view('dialogs/search_tasks')
+        	self.search_dialog.present('popover', popover_location=(500,500))
 
     def search_tasks(self, sender):
         """Search the task list for a task whose note or tag contains the user provided search string."""
@@ -118,6 +124,7 @@ class Menu:
         tasks = self.tasklist.search(search_string)
         if tasks:
             self.search_dialog.close()
+            self.main_view["button_search"].title = "Show All"
             self.show_tasks(sender,tasks=tasks)
         else:
             #self.search_dialog.close()
@@ -128,7 +135,7 @@ class Menu:
     	"""Prompt the user to add a task."""
     	
     	self.add_dialog = ui.load_view('dialogs/add_task')
-        self.add_dialog.present('sheet')
+        self.add_dialog.present('popover', popover_location=(500,500))
 
     def add_task(self, sender):
         """Add a new task."""
@@ -150,7 +157,7 @@ class Menu:
     	"""Prompt the user to delete a task file."""
     	
     	self.delete_dialog = ui.load_view('dialogs/delete_task_file')
-        self.delete_dialog.present('sheet')
+        self.delete_dialog.present('popover', popover_location=(500,500))
 
     def delete_file(self, sender):
     	"""Delete a task file."""
@@ -205,7 +212,7 @@ class Menu:
             if self.current_task.priority == 'High':
                 self.modify_dialog['segmentedcontrol1'].selected_index = 2
             self.modify_dialog['textfield_tags'].text = self.current_task.tags
-            self.modify_dialog.present('sheet')
+            self.modify_dialog.present('popover', popover_location=(500,500))
 
     def save_modified_task(self, sender):
         """Save the contents of the modified task."""
@@ -226,7 +233,7 @@ class Menu:
     	"""Prompt the user for the name of a task file."""
     	
         self.load_dialog = ui.load_view('dialogs/load_task_file')
-        self.load_dialog.present('sheet')
+        self.load_dialog.present('popover', popover_location=(500,500))
 
     def load_tasks(self, sender):
         """Retrieve the contents of the task file."""
@@ -248,7 +255,7 @@ class Menu:
     	"""Prompt the user for the name of a task file."""
     	
         self.save_dialog = ui.load_view('dialogs/save_task_file')
-        self.save_dialog.present('sheet')
+        self.save_dialog.present('popover', popover_location=(500,500))
 
     def save_tasks(self, sender):
 		"""Save the tasks to the specified file."""
@@ -264,6 +271,51 @@ class Menu:
 			util.save(self.tasklist.tasks, task_file)
 		else:
 			self.save_dialog['textfield1'].text = ''
+
+    def prompt_speak(self, sender):
+    	"""Prompt the user for the task(s) to speak."""
+    	
+        self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
+        self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
+        self.prompt_dialog.present('popover', popover_location=(500,500))
+
+    def display_speak_options(self, sender):
+        """Display the controls to enter a number"""
+        
+        if self.prompt_dialog["segmentedcontrol1"].selected_index == 0:
+            self.prompt_dialog["label1"].hidden = False
+            self.prompt_dialog["textfield1"].hidden = False
+        else:
+            self.prompt_dialog["label1"].hidden = True
+            self.prompt_dialog["textfield1"].hidden = True
+        
+    def process_speak_request(self, sender):
+    	"""""Determine which task(s) to recite"""
+    	
+        recite = self.prompt_dialog["segmentedcontrol1"].selected_index
+        self.prompt_dialog.close()
+        if recite == 0:
+            task_id = self._validate_task_id(self.prompt_dialog['textfield1'].text)
+            if task_id:
+                self.current_task = self.tasklist._find_task(task_id)
+                self.speak_task(self.current_task)
+            else:
+                self.prompt_dialog['textfield1'].text = ''
+        else:
+            for task in self.tasklist.tasks:
+                self.speak_task(task)
+        	
+    def speak_task(self, task):
+		"""""Recite the provided task"""
+
+            	speech.say("Task number " + str(task.id) + ", priority: " +\
+                            task.priority, "en-GB", self.speech_rate)
+            	speech.say(task.note, "en-GB", self.speech_rate)
+            	speech.say("This task has the following tags: ", "en-GB", self.speech_rate)
+            	tags = task.tags.split(" ")
+            	tags.insert(-1, "and")
+            	for tag in tags:
+                	speech.say(tag, "en-GB", self.speech_rate)
 
     def _validate_task_id(self, task_id):
         """Validate the given task ID.
@@ -286,7 +338,8 @@ class Menu:
     	main_view['button_delete_task'].enabled = False
     	main_view['button_modify'].enabled = False
     	main_view['button_search'].enabled = False
-        main_view.present("sheet")
+    	main_view['button_speak'].enabled = False
+        main_view.present("full_screen")
         self.main_view = main_view
         self.task_textview = main_view['task_textview']
     	self.task_textview.text = help.help_text
