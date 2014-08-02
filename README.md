@@ -7,6 +7,7 @@ A simple Task List app I wrote using Pythonista. Launch 'menu.py' in Pythonista 
 <a name="user-content-installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation:</h3>
 
 Using <a href="https://github.com/transistor1/shellista">Shellista</a>, type the following commands:
+
     mkdir Task-List
     cd Task-List
     git clone https://github.com/robinsiebler/Task-List.git
