@@ -1,4 +1,4 @@
-#------------------------------------------
+# ------------------------------------------
 # Name:     menu
 # Purpose:  Menu interface (with GUI) for creating/managing tasks.
 #
@@ -16,10 +16,10 @@ import ui
 import help
 import speech
 
-class Menu:
 
+class Menu:
     def __init__(self):
-        """Initialize the task list and populate the dictionary for menu actions."""
+        """Initialize the task list."""
 
         self.tasklist = TaskList()
         self.current_task = ''
@@ -29,16 +29,18 @@ class Menu:
         self.speech_rate = 0.3
 
     def display_message(self, message):
+        """Display any warnings or errors to the user."""
+
         self.message_dialog = ui.load_view('dialogs/message')
         self.message_dialog['label1'].text = message
-        self.message_dialog.present('popover', popover_location = (500,500))
-		
+        self.message_dialog.present('popover', popover_location=(500, 500))
+
     def show_tasks(self, sender, tasks=None):
         """Display the tasks (in ID order)
 
         :param tasks: tasks object
         """
-        
+
         if not tasks:
             tasks = self.tasklist.tasks
         tv_text = ""
@@ -57,7 +59,7 @@ class Menu:
                 tv_text += '{}: {}\n\tPriority: {}\n\tTags: {}\n'.format(task.id, task.note, task.priority, task.tags)
         else:
             tv_text = '\nThere are no tasks to display!\n'
-        
+
         self.task_textview.text = tv_text
 
     def show_tasks_by_priority(self, sender, tasks=None):
@@ -65,6 +67,7 @@ class Menu:
 
         :param tasks: tasks object
         """
+
         low_dict = OrderedDict()
         med_dict = OrderedDict()
         high_dict = OrderedDict()
@@ -99,7 +102,7 @@ class Menu:
         else:
             tv_text += 'There are no medium priority tasks\n'
 
-        tv_text+= '\nLow\n' + '-' * 20 + '\n'
+        tv_text += '\nLow\n' + '-' * 20 + '\n'
         if len(low_dict) > 0:
             for key in low_dict:
                 tv_text += '{}: {}\n\tTags: {}\n'.format(key, low_dict[key][0], low_dict[key][2])
@@ -109,13 +112,14 @@ class Menu:
         self.task_textview.text = tv_text
 
     def prompt_search(self, sender):
-    	"""Prompt the user for a search string."""
-    	if self.main_view['button_search'].title == "Show All":
-    		self.main_view['button_search'].title = "Search"
-    		self.show_tasks(None)
-    	else:
-        	self.search_dialog = ui.load_view('dialogs/search_tasks')
-        	self.search_dialog.present('popover', popover_location=(500,500))
+        """Prompt the user for a search string."""
+
+        if self.main_view['button_search'].title == "Show All":
+            self.main_view['button_search'].title = "Search"
+            self.show_tasks(None)
+        else:
+            self.search_dialog = ui.load_view('dialogs/search_tasks')
+            self.search_dialog.present('popover', popover_location=(500, 500))
 
     def search_tasks(self, sender):
         """Search the task list for a task whose note or tag contains the user provided search string."""
@@ -125,17 +129,16 @@ class Menu:
         if tasks:
             self.search_dialog.close()
             self.main_view["button_search"].title = "Show All"
-            self.show_tasks(sender,tasks=tasks)
+            self.show_tasks(sender, tasks=tasks)
         else:
-            #self.search_dialog.close()
             message = 'There were no tasks containing "{}".'.format(search_string)
             self.display_message(message)
-            
+
     def prompt_add(self, sender):
-    	"""Prompt the user to add a task."""
-    	
-    	self.add_dialog = ui.load_view('dialogs/add_task')
-        self.add_dialog.present('popover', popover_location=(500,500))
+        """Prompt the user to add a task."""
+
+        self.add_dialog = ui.load_view('dialogs/add_task')
+        self.add_dialog.present('popover', popover_location=(500, 500))
 
     def add_task(self, sender):
         """Add a new task."""
@@ -143,58 +146,59 @@ class Menu:
         note = self.add_dialog['textfield_task'].text
         priority_num = self.add_dialog['segmentedcontrol1'].selected_index
         if priority_num == 0:
-        	priority = 'Low'
+            priority = 'Low'
         elif priority_num == 1:
-        	priority = 'Medium'
+            priority = 'Medium'
         elif priority_num == 2:
-        	priority = 'High'
+            priority = 'High'
         tags = self.add_dialog['textfield_tags'].text
         self.tasklist.add_task(note, priority, tags)
         self.add_dialog.close()
         self.show_tasks(None)
 
     def prompt_delete_file(self, sender):
-    	"""Prompt the user to delete a task file."""
-    	
-    	self.delete_dialog = ui.load_view('dialogs/delete_task_file')
-        self.delete_dialog.present('popover', popover_location=(500,500))
+        """Prompt the user to delete a task file."""
+
+        self.delete_dialog = ui.load_view('dialogs/delete_task_file')
+        self.delete_dialog.present('popover', popover_location=(500, 500))
 
     def delete_file(self, sender):
-    	"""Delete a task file."""
+        """Delete a task file."""
+
         task_file = self.delete_dialog['textfield1'].text
         if not task_file == '':
-        	task_file = util.validate_file(task_file)
+            task_file = util.validate_file(task_file)
         if task_file:
-        	self.delete_dialog.close()
-        	util.delete(task_file)
+            self.delete_dialog.close()
+            util.delete(task_file)
         else:
-        	self.display_message(self.delete_dialog['textfield1'].text + ' is not a valid file!')
-        	self.delete_dialog['textfield1'].text = ''
+            self.display_message(self.delete_dialog['textfield1'].text + ' is not a valid file!')
+            self.delete_dialog['textfield1'].text = ''
 
     def prompt_delete_task(self, sender):
-    	"""Prompt the user to delete a task."""
-    	
-    	self.delete_dialog = ui.load_view('dialogs/delete_task')
-        self.delete_dialog.present('popover', popover_location = (500,500))
+        """Prompt the user to delete a task."""
+
+        self.delete_dialog = ui.load_view('dialogs/delete_task')
+        self.delete_dialog.present('popover', popover_location=(500, 500))
 
     def delete_task(self, sendr):
         """Delete a task."""
+
         task_id = self.delete_dialog['textfield1'].text
         task_id = self._validate_task_id(task_id)
         if task_id:
             self.delete_dialog.close()
             self.tasklist.delete_task(task_id)
             self.tasklist._renumber_tasks()
-            #Task.last_id -= 1
             self.show_tasks(None)
         else:
             self.delete_dialog['textfield1'].text = ''
-            
+
     def prompt_modify_task_number(self, sender):
-    	"""Prompt the user for the number of the task modify."""
-    	
-    	self.modify_dialog = ui.load_view('dialogs/modify_task_number')
-        self.modify_dialog.present('popover', popover_location = (500,500))
+        """Prompt the user for the number of the task to modify."""
+
+        self.modify_dialog = ui.load_view('dialogs/modify_task_number')
+        self.modify_dialog.present('popover', popover_location=(500, 500))
 
     def modify_task(self, sender):
         """Change the fields of a task."""
@@ -212,86 +216,86 @@ class Menu:
             if self.current_task.priority == 'High':
                 self.modify_dialog['segmentedcontrol1'].selected_index = 2
             self.modify_dialog['textfield_tags'].text = self.current_task.tags
-            self.modify_dialog.present('popover', popover_location=(500,500))
+            self.modify_dialog.present('popover', popover_location=(500, 500))
 
     def save_modified_task(self, sender):
         """Save the contents of the modified task."""
-        	
+
         self.current_task.note = self.modify_dialog['textfield_task'].text
         priority_num = self.modify_dialog['segmentedcontrol1'].selected_index
         if priority_num == 0:
-        	self.current_task.priority = 'Low'
+            self.current_task.priority = 'Low'
         elif priority_num == 1:
-        	self.current_task.priority = 'Medium'
+            self.current_task.priority = 'Medium'
         elif priority_num == 2:
-        	self.current_task.priority = 'High'
+            self.current_task.priority = 'High'
         self.current_task.tags = self.modify_dialog['textfield_tags'].text
         self.modify_dialog.close()
         self.show_tasks(None)
-                
+
     def prompt_load(self, sender):
-    	"""Prompt the user for the name of a task file."""
-    	
+        """Prompt the user for the name of a task file."""
+
         self.load_dialog = ui.load_view('dialogs/load_task_file')
-        self.load_dialog.present('popover', popover_location=(500,500))
+        self.load_dialog.present('popover', popover_location=(500, 500))
 
     def load_tasks(self, sender):
         """Retrieve the contents of the task file."""
 
         task_file = self.load_dialog['textfield1'].text
         if not task_file == '':
-        	task_file = util.validate_file(task_file)
+            task_file = util.validate_file(task_file)
         if task_file:
-        	self.load_dialog.close()
-	        self.tasklist.tasks = util.load(task_file)
-	        self.current_task_file = task_file
-	        Task.last_id = len(self.tasklist.tasks)
-	        self.show_tasks(None)
+            self.load_dialog.close()
+            self.tasklist.tasks = util.load(task_file)
+            self.current_task_file = task_file
+            Task.last_id = len(self.tasklist.tasks)
+            self.show_tasks(None)
         else:
-        	self.display_message(self.load_dialog['textfield1'].text + ' is not a valid file')
-        	self.load_dialog['textfield1'].text = ''
+            self.display_message(self.load_dialog['textfield1'].text + ' is not a valid file')
+            self.load_dialog['textfield1'].text = ''
 
     def prompt_save(self, sender):
-    	"""Prompt the user for the name of a task file."""
-    	
+        """Prompt the user for the name of a task file."""
+
         self.save_dialog = ui.load_view('dialogs/save_task_file')
-        self.save_dialog.present('popover', popover_location=(500,500))
+        self.save_dialog.present('popover', popover_location=(500, 500))
 
     def save_tasks(self, sender):
-		"""Save the tasks to the specified file."""
-		
-		task_file = self.save_dialog['textfield1'].text
-		if not task_file == '':
-			if task_file.rfind('.tsk', len(task_file) -4) == -1:
-				task_file += '.tsk'
-			self.save_dialog.close()
-			if task_file == self.current_task_file:
-				# some bug; even though the file should be closed, I can't overwrite 
-				util.delete(task_file)
-			util.save(self.tasklist.tasks, task_file)
-		else:
-			self.save_dialog['textfield1'].text = ''
+        """Save the tasks to the specified file."""
+
+        task_file = self.save_dialog['textfield1'].text
+        if not task_file == '':
+            if task_file.rfind('.tsk', len(task_file) - 4) == -1:
+                task_file += '.tsk'
+            self.save_dialog.close()
+            if task_file == self.current_task_file:
+                # some bug; even though the file should be closed, I can't overwrite
+                util.delete(task_file)
+            util.save(self.tasklist.tasks, task_file)
+        else:
+            self.save_dialog['textfield1'].text = ''
 
     def prompt_speak(self, sender):
-    	"""Prompt the user for the task(s) to speak."""
-    	
+        """Prompt the user for the task(s) to speak."""
+
         self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
         self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
-        self.prompt_dialog.present('popover', popover_location=(500,500))
+        self.prompt_dialog.present('popover', popover_location=(500, 500))
 
     def display_speak_options(self, sender):
         """Display the controls to enter a number"""
-        
+
         if self.prompt_dialog["segmentedcontrol1"].selected_index == 0:
             self.prompt_dialog["label1"].hidden = False
             self.prompt_dialog["textfield1"].hidden = False
         else:
             self.prompt_dialog["label1"].hidden = True
             self.prompt_dialog["textfield1"].hidden = True
-        
+
     def process_speak_request(self, sender):
-    	"""""Determine which task(s) to recite"""
-    	
+        """""Determine which task(s) to recite"""
+
         recite = self.prompt_dialog["segmentedcontrol1"].selected_index
         self.prompt_dialog.close()
         if recite == 0:
@@ -304,18 +308,18 @@ class Menu:
         else:
             for task in self.tasklist.tasks:
                 self.speak_task(task)
-        	
-    def speak_task(self, task):
-		"""""Recite the provided task"""
 
-            	speech.say("Task number " + str(task.id) + ", priority: " +\
-                            task.priority, "en-GB", self.speech_rate)
-            	speech.say(task.note, "en-GB", self.speech_rate)
-            	speech.say("This task has the following tags: ", "en-GB", self.speech_rate)
-            	tags = task.tags.split(" ")
-            	tags.insert(-1, "and")
-            	for tag in tags:
-                	speech.say(tag, "en-GB", self.speech_rate)
+    def speak_task(self, task):
+        """""Recite the provided task"""
+
+        speech.say("Task number " + str(task.id) + ", priority: " + \
+                   task.priority, "en-GB", self.speech_rate)
+        speech.say(task.note, "en-GB", self.speech_rate)
+        speech.say("This task has the following tags: ", "en-GB", self.speech_rate)
+        tags = task.tags.split(" ")
+        tags.insert(-1, "and")
+        for tag in tags:
+            speech.say(tag, "en-GB", self.speech_rate)
 
     def _validate_task_id(self, task_id):
         """Validate the given task ID.
@@ -330,19 +334,20 @@ class Menu:
             return None
 
     def run(self):
+
         main_view = ui.load_view("menu")
-    	# turn off invalid controls
-    	main_view['button_number'].enabled = False
-    	main_view['button_priority'].enabled = False
-    	main_view['button_save'].enabled = False
-    	main_view['button_delete_task'].enabled = False
-    	main_view['button_modify'].enabled = False
-    	main_view['button_search'].enabled = False
-    	main_view['button_speak'].enabled = False
+        # turn off invalid controls
+        main_view['button_number'].enabled = False
+        main_view['button_priority'].enabled = False
+        main_view['button_save'].enabled = False
+        main_view['button_delete_task'].enabled = False
+        main_view['button_modify'].enabled = False
+        main_view['button_search'].enabled = False
+        main_view['button_speak'].enabled = False
         main_view.present("full_screen")
         self.main_view = main_view
         self.task_textview = main_view['task_textview']
-    	self.task_textview.text = help.help_text
+        self.task_textview.text = help.help_text
 
 
 if __name__ == '__main__':
