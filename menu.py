@@ -16,6 +16,11 @@ import ui
 import help
 import speech
 
+class TextDelegate(object):
+    def textfield_did_change(self, textfield):
+        view = textfield.superview
+        button = view['button_select']
+        button.enabled = textfield.text != ''
 
 class Menu:
     def __init__(self):
@@ -282,7 +287,8 @@ class Menu:
 
         self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
         self.prompt_dialog['button_select'].enabled = False
-        self.prompt_dialog['textfield1'].action = self.enable_select
+        self.td = TextDelegate()
+        self.prompt_dialog['textfield1'].delegate = self.td
         self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
         self.prompt_dialog.present('popover', popover_location=(500, 500))
 
@@ -333,7 +339,8 @@ class Menu:
         speech.say(task.note, self.language, self.speech_rate)
         speech.say("This task has the following tags: ", self.language, self.speech_rate)
         tags = task.tags.split(" ")
-        tags.insert(-1, "and")
+        if len(tags) > 1:
+            tags.insert(-1, "and")
         for tag in tags:
             speech.say(tag, self.language, self.speech_rate)
 
@@ -413,8 +420,8 @@ class Menu:
     def update_label(self, sender):
         """"Update the speech rate label as the slider value changes."""
 
-        self.prompt_dialog['label_rate'].text = 'Speech Rate: {:.2f}'.format(self.prompt_dialog['slider1'].value)
-        self.speech_rate = self.prompt_dialog['label_rate'].text
+        self.prompt_dialog['label_rate'].text = '{:.2f}'.format(self.prompt_dialog['slider1'].value)
+        self.speech_rate = float(self.prompt_dialog['label_rate'].text)
 
     def run(self):
 
