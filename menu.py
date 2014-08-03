@@ -125,6 +125,7 @@ class Menu:
             self.show_tasks(None)
         else:
             self.search_dialog = ui.load_view('dialogs/search_tasks')
+            self.search_dialog['textfield1'].begin_editing()
             self.search_dialog.present('popover', popover_location=(500, 500))
 
     def search_tasks(self, sender):
@@ -144,6 +145,7 @@ class Menu:
         """Prompt the user to add a task."""
 
         self.add_dialog = ui.load_view('dialogs/add_task')
+        self.add_dialog['textfield_task'].begin_editing()
         self.add_dialog.present('popover', popover_location=(500, 500))
 
     def add_task(self, sender):
@@ -166,6 +168,7 @@ class Menu:
         """Prompt the user to delete a task file."""
 
         self.delete_dialog = ui.load_view('dialogs/delete_task_file')
+        self.delete_dialog['textfield1'].begin_editing()
         self.delete_dialog.present('popover', popover_location=(500, 500))
 
     def delete_file(self, sender):
@@ -185,6 +188,7 @@ class Menu:
         """Prompt the user to delete a task."""
 
         self.delete_dialog = ui.load_view('dialogs/delete_task')
+        self.delete_dialog['textfield1'].begin_editing()
         self.delete_dialog.present('popover', popover_location=(500, 500))
 
     def delete_task(self, sendr):
@@ -204,6 +208,7 @@ class Menu:
         """Prompt the user for the number of the task to modify."""
 
         self.modify_dialog = ui.load_view('dialogs/modify_task_number')
+        self.modify_dialog['textfield1'].begin_editing()
         self.modify_dialog.present('popover', popover_location=(500, 500))
 
     def modify_task(self, sender):
@@ -243,6 +248,7 @@ class Menu:
         """Prompt the user for the name of a task file."""
 
         self.load_dialog = ui.load_view('dialogs/load_task_file')
+        self.load_dialog['textfield1'].begin_editing()
         self.load_dialog.present('popover', popover_location=(500, 500))
 
     def load_tasks(self, sender):
@@ -265,6 +271,7 @@ class Menu:
         """Prompt the user for the name of a task file."""
 
         self.save_dialog = ui.load_view('dialogs/save_task_file')
+        self.save_dialog['textfield1'].begin_editing()
         self.save_dialog.present('popover', popover_location=(500, 500))
 
     def save_tasks(self, sender):
@@ -276,7 +283,7 @@ class Menu:
                 task_file += '.tsk'
             self.save_dialog.close()
             if task_file == self.current_task_file:
-                # some bug; even though the file should be closed, I can't overwrite
+                # some bug; even though the file should be closed, I can't overwrite it
                 util.delete(task_file)
             util.save(self.tasklist.tasks, task_file)
         else:
@@ -287,9 +294,10 @@ class Menu:
 
         self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
         self.prompt_dialog['button_select'].enabled = False
-        self.td = TextDelegate()
-        self.prompt_dialog['textfield1'].delegate = self.td
+        td = TextDelegate()
+        self.prompt_dialog['textfield1'].delegate = td
         self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
+        self.prompt_dialog['textfield1'].begin_editing()
         self.prompt_dialog.present('popover', popover_location=(500, 500))
 
     def display_speak_options(self, sender):
