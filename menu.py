@@ -26,6 +26,7 @@ class Menu:
         self.current_task_file = ''
         self.main_view = ''
         self.controls_enabled = False
+        self.language = 'en-GB'
         self.speech_rate = 0.3
 
     def display_message(self, message):
@@ -280,6 +281,8 @@ class Menu:
         """Prompt the user for the task(s) to speak."""
 
         self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
+        self.prompt_dialog['button_select'].enabled = False
+        self.prompt_dialog['textfield1'].action = self.enable_select
         self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
         self.prompt_dialog.present('popover', popover_location=(500, 500))
 
@@ -289,37 +292,50 @@ class Menu:
         if self.prompt_dialog["segmentedcontrol1"].selected_index == 0:
             self.prompt_dialog["label1"].hidden = False
             self.prompt_dialog["textfield1"].hidden = False
+            if self.prompt_dialog["textfield1"].text == '':
+                self.prompt_dialog['button_select'].enabled = False
+            else:
+                self.prompt_dialog["button_select"].enabled = True
         else:
             self.prompt_dialog["label1"].hidden = True
             self.prompt_dialog["textfield1"].hidden = True
+            self.prompt_dialog['button_select'].enabled = True
+
+    def enable_select(self, sender):
+        """Enable the Select button after a task # has been provided."""
+
+        self.prompt_dialog['button_select'].enabled = True
+        self.main_view.set_needs_display()
 
     def process_speak_request(self, sender):
         """""Determine which task(s) to recite"""
 
         recite = self.prompt_dialog["segmentedcontrol1"].selected_index
-        self.prompt_dialog.close()
         if recite == 0:
             task_id = self._validate_task_id(self.prompt_dialog['textfield1'].text)
             if task_id:
+                self.prompt_dialog.close()
                 self.current_task = self.tasklist._find_task(task_id)
                 self.speak_task(self.current_task)
             else:
                 self.prompt_dialog['textfield1'].text = ''
+                self.prompt_dialog['button_select'].enabled = False
         else:
+            self.prompt_dialog.close()
             for task in self.tasklist.tasks:
                 self.speak_task(task)
 
     def speak_task(self, task):
         """""Recite the provided task"""
 
-        speech.say("Task number " + str(task.id) + ", priority: " + \
-                   task.priority, "en-GB", self.speech_rate)
-        speech.say(task.note, "en-GB", self.speech_rate)
-        speech.say("This task has the following tags: ", "en-GB", self.speech_rate)
+        speech.say("Task number " + str(task.id) + ", priority: " +
+                   task.priority, self.language, self.speech_rate)
+        speech.say(task.note, self.language, self.speech_rate)
+        speech.say("This task has the following tags: ", self.language, self.speech_rate)
         tags = task.tags.split(" ")
         tags.insert(-1, "and")
         for tag in tags:
-            speech.say(tag, "en-GB", self.speech_rate)
+            speech.say(tag, self.language, self.speech_rate)
 
     def _validate_task_id(self, task_id):
         """Validate the given task ID.
@@ -332,6 +348,73 @@ class Menu:
         else:
             self.display_message('{} is not an existing task!'.format(task_id))
             return None
+
+    def prompt_language(self, sender):
+        """Prompt the user to select a language and speak rate."""
+
+        # set languages
+        ar = {'title': 'Arabic (Saudi Arabia)', 'code': 'ar-SA'}
+        cs_CZ = {'title': 'Czech (Czech Republic)', 'code': 'cs-CZ'}
+        da_DK = {'title': 'Danish (Denmark)', 'code': 'da-DK'}
+        nl_BE = {'title': 'Dutch (Belgium)', 'code': 'nl-BE'}
+        nl_NL = {'title': 'Dutch (Netherlands)', 'code': 'nl-NL'}
+        en_AU = {'title': 'English (Australian)', 'code': 'en-AU'}
+        en_IE = {'title': 'English (Ireland)', 'code': 'en-IE'}
+        en_ZA = {'title': 'English (South Africa)', 'code': 'en-ZA'}
+        en_GB = {'title': 'English (United Kingdom)', 'code': 'en-GB'}
+        en_US = {'title': 'English (United States)', 'code': 'en-US'}
+        fi_FI = {'title': 'Finnish (Finland)', 'code': 'fi-FI'}
+        fr_CA = {'title': 'French (Canadian)', 'code': 'fr-CA'}
+        fr_FR = {'title': 'French', 'code': 'fr-FR'}
+        de_DE = {'title': 'German (Germany)', 'code': 'de-DE'}
+        el_GR = {'title': 'Greek (Greece)', 'code': 'el-GR'}
+        hi_IN = {'title': 'Hindi (India)', 'code': 'hi-IN'}
+        hu_HU = {'title':'Hungarian (Hungary)', 'code': 'hu-HU'}
+        id_ID = {'title': 'Indonesian (Indonesia)', 'code': 'id-ID'}
+        it_IT = {'title': 'Italian (Italy)', 'code': 'it-IT'}
+        ja_JP = {'title': 'Japanese (Japan)', 'code': 'ja-JP'}
+        ko_KR = {'title': 'Korean (South Korea)', 'code': 'ko-KR'}
+        no_NO = {'title': 'Norwegian (Norway)', 'code': 'no-NO'}
+        pl_PL = {'title': 'Polish (Poland)', 'code': 'pl-PL'}
+        pt_BR = {'title': 'Portuguese (Brazil)', 'code': 'pt-BR'}
+        pt_PT = {'title': 'Portuguese (Portugal)', 'code': 'pt-PT'}
+        ro_RO = {'title': 'Romanian (Romania)', 'code': 'ro-RO'}
+        ru_RU = {'title': 'Russian (Russia)', 'code': 'ru-RU'}
+        sk_SK = {'title': 'Slovak (Slovakia) ', 'code': 'sk-SK'}
+        es_MX = {'title': 'Spanish (Mexico)', 'code': 'es-MX'}
+        es_ES = {'title': 'Spanish (Spain)', 'code': 'es-ES'}
+        sv_SE = {'title': 'Swedish (Sweden)', 'code': 'sv-SE'}
+        th_TH = {'title': 'Thai (Thailand)', 'code': 'th-TH'}
+        tr_TR = {'title': 'Turkish (Turkey)', 'code': 'tr-TR'}
+        zh_CN = {'title': 'Chinese (China)', 'code': 'zh-CN'}
+        zh_HK = {'title': 'Chinese (Hong Kong SAR China)', 'code': 'zh-HK'}
+        zh_TW = {'title': 'Chinese (Taiwan)', 'code': 'zh-Tw'}
+        self.lang_list = [ar, cs_CZ, da_DK, nl_BE, nl_NL, en_AU, en_IE, en_ZA, en_GB,
+                     en_US, fi_FI, fr_CA, fr_FR, de_DE, el_GR, hi_IN, hu_HU, id_ID,
+                     it_IT, ja_JP, ko_KR, no_NO, pl_PL, pt_BR, pt_PT, ro_RO, ru_RU,
+                     sk_SK, es_MX, es_ES, sv_SE, th_TH, tr_TR, zh_CN, zh_HK, zh_TW
+        ]
+
+        self.prompt_lang = ui.load_view('dialogs/select_language')
+        table = self.prompt_lang['tableview1']
+        listsource = ui.ListDataSource(self.lang_list)
+        table.data_source = listsource
+        table.delegate = listsource
+        listsource.action = self.set_language
+        self.prompt_lang.present('sheet')
+
+    def set_language(self, sender):
+        """Set the language used for recitation based upon user selection."""
+
+        self.language = self.lang_list[self.prompt_lang['tableview1'].selected_row[1]]['code']
+        self.prompt_dialog['label_language'].text = self.lang_list[self.prompt_lang['tableview1'].selected_row[1]]['title']
+        self.prompt_lang.close()
+
+    def update_label(self, sender):
+        """"Update the speech rate label as the slider value changes."""
+
+        self.prompt_dialog['label_rate'].text = 'Speech Rate: {:.2f}'.format(self.prompt_dialog['slider1'].value)
+        self.speech_rate = self.prompt_dialog['label_rate'].text
 
     def run(self):
 
