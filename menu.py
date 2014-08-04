@@ -12,7 +12,7 @@ import util
 from tasklist import Task, TaskList
 from collections import OrderedDict
 import sys
-import ui
+import ui                                        
 import help
 import speech
 
@@ -338,6 +338,8 @@ class Menu:
             self.prompt_dialog.close()
             for task in self.tasklist.tasks:
                 self.speak_task(task)
+        speech.say('Recitation complete', self.language, self.speech_rate)
+
 
     def speak_task(self, task):
         """""Recite the provided task"""
