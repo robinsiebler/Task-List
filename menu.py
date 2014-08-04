@@ -126,20 +126,22 @@ class Menu:
         else:
             self.search_dialog = ui.load_view('dialogs/search_tasks')
             self.search_dialog['textfield1'].begin_editing()
+            self.search_dialog['textfield1'].action = self.search_tasks
             self.search_dialog.present('popover', popover_location=(500, 500))
 
     def search_tasks(self, sender):
         """Search the task list for a task whose note or tag contains the user provided search string."""
 
         search_string = self.search_dialog['textfield1'].text.lower()
-        tasks = self.tasklist.search(search_string)
-        if tasks:
-            self.search_dialog.close()
-            self.main_view["button_search"].title = "Show All"
-            self.show_tasks(sender, tasks=tasks)
-        else:
-            message = 'There were no tasks containing "{}".'.format(search_string)
-            self.display_message(message)
+        if search_string:
+            tasks = self.tasklist.search(search_string)
+            if tasks:
+                self.search_dialog.close()
+                self.main_view["button_search"].title = "Show All"
+                self.show_tasks(sender, tasks=tasks)
+            else:
+                message = 'There were no tasks containing "{}".'.format(search_string)
+                self.display_message(message)
 
     def prompt_add(self, sender):
         """Prompt the user to add a task."""
@@ -189,26 +191,29 @@ class Menu:
 
         self.delete_dialog = ui.load_view('dialogs/delete_task')
         self.delete_dialog['textfield1'].begin_editing()
+        self.delete_dialog['textfield1'].action = self.delete_task
         self.delete_dialog.present('popover', popover_location=(500, 500))
 
     def delete_task(self, sendr):
         """Delete a task."""
 
         task_id = self.delete_dialog['textfield1'].text
-        task_id = self._validate_task_id(task_id)
         if task_id:
-            self.delete_dialog.close()
-            self.tasklist.delete_task(task_id)
-            self.tasklist._renumber_tasks()
-            self.show_tasks(None)
-        else:
-            self.delete_dialog['textfield1'].text = ''
+            task_id = self._validate_task_id(task_id)
+            if task_id:
+                self.delete_dialog.close()
+                self.tasklist.delete_task(task_id)
+                self.tasklist._renumber_tasks()
+                self.show_tasks(None)
+            else:
+                self.delete_dialog['textfield1'].text = ''
 
     def prompt_modify_task_number(self, sender):
         """Prompt the user for the number of the task to modify."""
 
         self.modify_dialog = ui.load_view('dialogs/modify_task_number')
         self.modify_dialog['textfield1'].begin_editing()
+        self.modify_dialog['textfield1'].action = self.modify_task
         self.modify_dialog.present('popover', popover_location=(500, 500))
 
     def modify_task(self, sender):
@@ -249,36 +254,38 @@ class Menu:
 
         self.load_dialog = ui.load_view('dialogs/load_task_file')
         self.load_dialog['textfield1'].begin_editing()
+        self.load_dialog['textfield1'].action = self.load_tasks
         self.load_dialog.present('popover', popover_location=(500, 500))
 
     def load_tasks(self, sender):
         """Retrieve the contents of the task file."""
 
         task_file = self.load_dialog['textfield1'].text
-        if not task_file == '':
-            task_file = util.validate_file(task_file)
         if task_file:
-            self.load_dialog.close()
-            self.tasklist.tasks = util.load(task_file)
-            self.current_task_file = task_file
-            Task.last_id = len(self.tasklist.tasks)
-            self.show_tasks(None)
-        else:
-            self.display_message(self.load_dialog['textfield1'].text + ' is not a valid file')
-            self.load_dialog['textfield1'].text = ''
+            task_file = util.validate_file(task_file)
+            if task_file:
+                self.load_dialog.close()
+                self.tasklist.tasks = util.load(task_file)
+                self.current_task_file = task_file
+                Task.last_id = len(self.tasklist.tasks)
+                self.show_tasks(None)
+            else:
+                self.display_message(self.load_dialog['textfield1'].text + ' is not a valid file')
+                self.load_dialog['textfield1'].text = ''
 
     def prompt_save(self, sender):
         """Prompt the user for the name of a task file."""
 
         self.save_dialog = ui.load_view('dialogs/save_task_file')
         self.save_dialog['textfield1'].begin_editing()
+        self.save_dialog['textfield1'].action = self.save_tasks
         self.save_dialog.present('popover', popover_location=(500, 500))
 
     def save_tasks(self, sender):
         """Save the tasks to the specified file."""
 
         task_file = self.save_dialog['textfield1'].text
-        if not task_file == '':
+        if task_file:
             if task_file.rfind('.tsk', len(task_file) - 4) == -1:
                 task_file += '.tsk'
             self.save_dialog.close()
@@ -359,12 +366,12 @@ class Menu:
 
         :return: False if an invalid ID was provided, otherwise a string containing the valid task id.
         """
-
-        if task_id.isdecimal() and int(task_id) <= len(self.tasklist.tasks):
-            return task_id
-        else:
-            self.display_message('{} is not an existing task!'.format(task_id))
-            return None
+        if task_id:
+            if task_id.isdecimal() and int(task_id) <= len(self.tasklist.tasks):
+                return task_id
+            else:
+                self.display_message('{} is not an existing task!'.format(task_id))
+                return None
 
     def prompt_language(self, sender):
         """Prompt the user to select a language and speak rate."""
