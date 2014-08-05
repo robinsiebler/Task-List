@@ -8,13 +8,9 @@
 __author__ = 'Robin Siebler'
 __date__ = '7/28/14'
 
-import util
+import speech, sys, ui
+import help, util
 from tasklist import Task, TaskList
-from collections import OrderedDict
-import sys
-import ui                                        
-import help
-import speech
 
 class TextDelegate(object):
     def textfield_did_change(self, textfield):
@@ -40,6 +36,9 @@ class Menu:
         self.message_dialog = ui.load_view('dialogs/message')
         self.message_dialog['label1'].text = message
         self.message_dialog.present('popover', popover_location=(500, 500))
+
+    def say_message(self, message):
+        speech.say(message, self.language, self.speech_rate)
 
     def show_tasks(self, sender, tasks=None):
         """Display the tasks (in ID order)
@@ -68,6 +67,30 @@ class Menu:
 
         self.task_textview.text = tv_text
 
+    def show_tasks_by_priority(self, sender, tasks=None):
+
+        """Display the tasks (in Priority order)
+
+        :param tasks: tasks object
+        """
+
+        def task_as_str(task):
+            return '{}: {}\n\tTags: {}'.format(task.id, task.note, task.tags)
+
+        def priority_text(priority, tasks):
+            text = '{}:\n{}\n'.format(priority, '-' * 20)
+            new_tasks = [task_as_str(t) for t in tasks
+                             if t.priority == priority]
+            text += '\n'.join(new_tasks) or 'There are no tasks to display!'
+            return text
+
+        if not tasks:
+            tasks = self.tasklist.tasks
+
+        self.task_textview.text = '\n\n'.join(priority_text(p, tasks)
+                                for p in 'High Medium Low'.split())
+
+    '''
     def show_tasks_by_priority(self, sender, tasks=None):
         """Display the tasks (in Priority order)
 
@@ -116,6 +139,7 @@ class Menu:
             tv_text += 'There are no low priority tasks\n'
 
         self.task_textview.text = tv_text
+    '''
 
     def prompt_search(self, sender):
         """Prompt the user for a search string."""
@@ -345,21 +369,16 @@ class Menu:
             self.prompt_dialog.close()
             for task in self.tasklist.tasks:
                 self.speak_task(task)
-        speech.say('Recitation complete', self.language, self.speech_rate)
-
+        speech.say('Recitation complete.', self.language, self.speech_rate)
 
     def speak_task(self, task):
         """""Recite the provided task"""
 
-        speech.say("Task number " + str(task.id) + ", priority: " +
-                   task.priority, self.language, self.speech_rate)
-        speech.say(task.note, self.language, self.speech_rate)
-        speech.say("This task has the following tags: ", self.language, self.speech_rate)
-        tags = task.tags.split(" ")
-        if len(tags) > 1:
-            tags.insert(-1, "and")
-        for tag in tags:
-            speech.say(tag, self.language, self.speech_rate)
+        if not task:
+            return
+        fmt = "Task number {}, priority: {}, {}, This task has the following tags: {}"
+        msg = fmt.format(task.id, task.priority, task.note, ' and '.join(task.tags.split()))
+        speech.say(msg, self.language, self.speech_rate)
 
     def _validate_task_id(self, task_id):
         """Validate the given task ID.
@@ -377,46 +396,43 @@ class Menu:
         """Prompt the user to select a language and speak rate."""
 
         # set languages
-        ar = {'title': 'Arabic (Saudi Arabia)', 'code': 'ar-SA'}
-        cs_CZ = {'title': 'Czech (Czech Republic)', 'code': 'cs-CZ'}
-        da_DK = {'title': 'Danish (Denmark)', 'code': 'da-DK'}
-        nl_BE = {'title': 'Dutch (Belgium)', 'code': 'nl-BE'}
-        nl_NL = {'title': 'Dutch (Netherlands)', 'code': 'nl-NL'}
-        en_AU = {'title': 'English (Australian)', 'code': 'en-AU'}
-        en_IE = {'title': 'English (Ireland)', 'code': 'en-IE'}
-        en_ZA = {'title': 'English (South Africa)', 'code': 'en-ZA'}
-        en_GB = {'title': 'English (United Kingdom)', 'code': 'en-GB'}
-        en_US = {'title': 'English (United States)', 'code': 'en-US'}
-        fi_FI = {'title': 'Finnish (Finland)', 'code': 'fi-FI'}
-        fr_CA = {'title': 'French (Canadian)', 'code': 'fr-CA'}
-        fr_FR = {'title': 'French', 'code': 'fr-FR'}
-        de_DE = {'title': 'German (Germany)', 'code': 'de-DE'}
-        el_GR = {'title': 'Greek (Greece)', 'code': 'el-GR'}
-        hi_IN = {'title': 'Hindi (India)', 'code': 'hi-IN'}
-        hu_HU = {'title':'Hungarian (Hungary)', 'code': 'hu-HU'}
-        id_ID = {'title': 'Indonesian (Indonesia)', 'code': 'id-ID'}
-        it_IT = {'title': 'Italian (Italy)', 'code': 'it-IT'}
-        ja_JP = {'title': 'Japanese (Japan)', 'code': 'ja-JP'}
-        ko_KR = {'title': 'Korean (South Korea)', 'code': 'ko-KR'}
-        no_NO = {'title': 'Norwegian (Norway)', 'code': 'no-NO'}
-        pl_PL = {'title': 'Polish (Poland)', 'code': 'pl-PL'}
-        pt_BR = {'title': 'Portuguese (Brazil)', 'code': 'pt-BR'}
-        pt_PT = {'title': 'Portuguese (Portugal)', 'code': 'pt-PT'}
-        ro_RO = {'title': 'Romanian (Romania)', 'code': 'ro-RO'}
-        ru_RU = {'title': 'Russian (Russia)', 'code': 'ru-RU'}
-        sk_SK = {'title': 'Slovak (Slovakia) ', 'code': 'sk-SK'}
-        es_MX = {'title': 'Spanish (Mexico)', 'code': 'es-MX'}
-        es_ES = {'title': 'Spanish (Spain)', 'code': 'es-ES'}
-        sv_SE = {'title': 'Swedish (Sweden)', 'code': 'sv-SE'}
-        th_TH = {'title': 'Thai (Thailand)', 'code': 'th-TH'}
-        tr_TR = {'title': 'Turkish (Turkey)', 'code': 'tr-TR'}
-        zh_CN = {'title': 'Chinese (China)', 'code': 'zh-CN'}
-        zh_HK = {'title': 'Chinese (Hong Kong SAR China)', 'code': 'zh-HK'}
-        zh_TW = {'title': 'Chinese (Taiwan)', 'code': 'zh-Tw'}
-        self.lang_list = [ar, cs_CZ, da_DK, nl_BE, nl_NL, en_AU, en_IE, en_ZA, en_GB,
-                     en_US, fi_FI, fr_CA, fr_FR, de_DE, el_GR, hi_IN, hu_HU, id_ID,
-                     it_IT, ja_JP, ko_KR, no_NO, pl_PL, pt_BR, pt_PT, ro_RO, ru_RU,
-                     sk_SK, es_MX, es_ES, sv_SE, th_TH, tr_TR, zh_CN, zh_HK, zh_TW
+        self.lang_list = [
+            {'title': 'Arabic (Saudi Arabia)', 'code': 'ar-SA'},
+            {'title': 'Czech (Czech Republic)', 'code': 'cs-CZ'},
+            {'title': 'Danish (Denmark)', 'code': 'da-DK'},
+            {'title': 'Dutch (Belgium)', 'code': 'nl-BE'},
+            {'title': 'Dutch (Netherlands)', 'code': 'nl-NL'},
+            {'title': 'English (Australian)', 'code': 'en-AU'},
+            {'title': 'English (Ireland)', 'code': 'en-IE'},
+            {'title': 'English (South Africa)', 'code': 'en-ZA'},
+            {'title': 'English (United Kingdom)', 'code': 'en-GB'},
+            {'title': 'English (United States)', 'code': 'en-US'},
+            {'title': 'Finnish (Finland)', 'code': 'fi-FI'},
+            {'title': 'French (Canadian)', 'code': 'fr-CA'},
+            {'title': 'French', 'code': 'fr-FR'},
+            {'title': 'German (Germany)', 'code': 'de-DE'},
+            {'title': 'Greek (Greece)', 'code': 'el-GR'},
+            {'title': 'Hindi (India)', 'code': 'hi-IN'},
+            {'title': 'Hungarian (Hungary)', 'code': 'hu-HU'},
+            {'title': 'Indonesian (Indonesia)', 'code': 'id-ID'},
+            {'title': 'Italian (Italy)', 'code': 'it-IT'},
+            {'title': 'Japanese (Japan)', 'code': 'ja-JP'},
+            {'title': 'Korean (South Korea)', 'code': 'ko-KR'},
+            {'title': 'Norwegian (Norway)', 'code': 'no-NO'},
+            {'title': 'Polish (Poland)', 'code': 'pl-PL'},
+            {'title': 'Portuguese (Brazil)', 'code': 'pt-BR'},
+            {'title': 'Portuguese (Portugal)', 'code': 'pt-PT'},
+            {'title': 'Romanian (Romania)', 'code': 'ro-RO'},
+            {'title': 'Russian (Russia)', 'code': 'ru-RU'},
+            {'title': 'Slovak (Slovakia) ', 'code': 'sk-SK'},
+            {'title': 'Spanish (Mexico)', 'code': 'es-MX'},
+            {'title': 'Spanish (Spain)', 'code': 'es-ES'},
+            {'title': 'Swedish (Sweden)', 'code': 'sv-SE'},
+            {'title': 'Thai (Thailand)', 'code': 'th-TH'},
+            {'title': 'Turkish (Turkey)', 'code': 'tr-TR'},
+            {'title': 'Chinese (China)', 'code': 'zh-CN'},
+            {'title': 'Chinese (Hong Kong SAR China)', 'code': 'zh-HK'},
+            {'title': 'Chinese (Taiwan)', 'code': 'zh-Tw'}
         ]
 
         self.prompt_lang = ui.load_view('dialogs/select_language')
