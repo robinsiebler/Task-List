@@ -30,6 +30,10 @@ class Task:
         Task.last_id += 1
         self.id = Task.last_id
 
+    def __str__(self):
+        fmt = '{}: {}\n\tPriority: {}\n\tTags: {}'
+        return fmt.format(self.id, self.note, self.priority, self.tags)
+
     def match(self, search_string):
         """Return a list of tasks where search_string is found in either the notes or tags.
 
@@ -41,6 +45,9 @@ class Task:
 class TaskList:
     def __init__(self):
         self.tasks = []
+
+    def __str__(self):
+        return '\n'.join([str(task) for task in self.tasks])
 
     def add_task(self, note, priority, tags):
         """Add a new task to the task list.
