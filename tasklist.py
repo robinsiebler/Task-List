@@ -13,11 +13,9 @@ import datetime
 # TODO: add option to sort by date
 
 class Task:
-
     last_id = 0
 
     def __init__(self, note, priority, tags=''):
-
         """Initialize a Task object.
 
         :param note: a string containing the task
@@ -32,6 +30,10 @@ class Task:
         Task.last_id += 1
         self.id = Task.last_id
 
+    def __str__(self):
+        fmt = '{}: {}\n\tPriority: {}\n\tTags: {}'
+        return fmt.format(self.id, self.note, self.priority, self.tags)
+
     def match(self, search_string):
         """Return a list of tasks where search_string is found in either the notes or tags.
 
@@ -41,10 +43,11 @@ class Task:
         return search_string in self.note.lower() or search_string in self.tags.lower()
 
 class TaskList:
-
     def __init__(self):
-
         self.tasks = []
+
+    def __str__(self):
+        return '\n'.join([str(task) for task in self.tasks])
 
     def add_task(self, note, priority, tags):
         """Add a new task to the task list.
@@ -81,6 +84,7 @@ class TaskList:
         :param task_id: The task.id for the task to find.
         :return: a task object if found, otherwise None
         """
+
         for task in self.tasks:
             if str(task.id) == str(task_id):
                 return task
@@ -89,12 +93,11 @@ class TaskList:
     def _renumber_tasks(self):
         """Renumber all of the tasks. Useful when a task is deleted."""
 
-        if len(self.tasks) > 0:
-            Task.last_id = 0
-
-            for task in self.tasks:
-                Task.last_id += 1
-                task.id = Task.last_id
+        Task.last_id = 0
+        for task in self.tasks:
+            Task.last_id += 1
+            task.id = Task.last_id
 
 if __name__ == '__main__':
-    pass  # put call to unit tests here?
+    import menu
+    Menu().run()  # replace with a call to unit tests?
