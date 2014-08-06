@@ -99,5 +99,5 @@ class TaskList:
             task.id = Task.last_id
 
 if __name__ == '__main__':
-    import menu
+    from menu import Menu
     Menu().run()  # replace with a call to unit tests?

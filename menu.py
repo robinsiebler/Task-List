@@ -329,6 +329,7 @@ class Menu:
         self.prompt_dialog['textfield1'].delegate = td
         self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
         self.prompt_dialog['textfield1'].begin_editing()
+        self.prompt_dialog['textfield1'].action = self.process_speak_request
         self.prompt_dialog.present('popover', popover_location=(500, 500))
 
     def display_speak_options(self, sender):
@@ -376,8 +377,12 @@ class Menu:
 
         if not task:
             return
-        fmt = "Task number {}, priority: {}, {}, This task has the following tags: {}"
-        msg = fmt.format(task.id, task.priority, task.note, ' and '.join(task.tags.split()))
+        if len(task.tags) > 0:
+            fmt = "Task number {}, priority: {}, {}, This task has the following tags: {}"
+            msg = fmt.format(task.id, task.priority, task.note, ' and '.join(task.tags.split()))
+        else:
+            fmt = "Task number {}, priority: {}, {}, This task does not have any tags."
+            msg = fmt.format(task.id, task.priority, task.note)
         speech.say(msg, self.language, self.speech_rate)
 
     def _validate_task_id(self, task_id):
