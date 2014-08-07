@@ -10,15 +10,11 @@ __date__ = '7/28/14'
 
 import speech, sys, ui
 import help, util
+import tasklist; reload(tasklist)
 from tasklist import Task, TaskList
 
-class TextDelegate(object):
-    def textfield_did_change(self, textfield):
-        view = textfield.superview
-        button = view['button_select']
-        button.enabled = textfield.text != ''
-
 class Menu:
+    
     def __init__(self):
         """Initialize the task list."""
 
@@ -29,7 +25,7 @@ class Menu:
         self.controls_enabled = False
         self.language = 'en-GB'
         self.speech_rate = 0.3
-
+        
     def display_message(self, message):
         """Display any warnings or errors to the user."""
 
@@ -325,11 +321,10 @@ class Menu:
 
         self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
         self.prompt_dialog['button_select'].enabled = False
-        td = TextDelegate()
+        td = self
         self.prompt_dialog['textfield1'].delegate = td
         self.prompt_dialog["segmentedcontrol1"].action = self.display_speak_options
         self.prompt_dialog['textfield1'].begin_editing()
-        self.prompt_dialog['textfield1'].action = self.process_speak_request
         self.prompt_dialog.present('popover', popover_location=(500, 500))
 
     def display_speak_options(self, sender):
@@ -354,7 +349,7 @@ class Menu:
         self.main_view.set_needs_display()
 
     def process_speak_request(self, sender):
-        """""Determine which task(s) to recite"""
+        """Determine which task(s) to recite"""
 
         recite = self.prompt_dialog["segmentedcontrol1"].selected_index
         if recite == 0:
@@ -373,7 +368,7 @@ class Menu:
         speech.say('Recitation complete.', self.language, self.speech_rate)
 
     def speak_task(self, task):
-        """""Recite the provided task"""
+        """Recite the provided task"""
 
         if not task:
             return
@@ -456,10 +451,19 @@ class Menu:
         self.prompt_lang.close()
 
     def update_label(self, sender):
-        """"Update the speech rate label as the slider value changes."""
+        """Update the speech rate label as the slider value changes."""
 
         self.prompt_dialog['label_rate'].text = '{:.2f}'.format(self.prompt_dialog['slider1'].value)
         self.speech_rate = float(self.prompt_dialog['label_rate'].text)
+
+    def textfield_did_change(self, textfield):
+        view = textfield.superview
+        button = view['button_select']
+        button.enabled = textfield.text != ''
+        
+    def textfield_should_return(self, textfield):
+        self.process_speak_request(None)
+        return True
 
     def run(self):
 
