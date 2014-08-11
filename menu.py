@@ -13,7 +13,7 @@ import help, util
 import tasklist; reload(tasklist)
 
 class Menu:
-    
+
     def __init__(self):
         """Initialize the task list."""
 
@@ -22,9 +22,7 @@ class Menu:
         self.current_task_file = ''
         self.main_view = ''
         self.controls_enabled = False
-        self.language = 'en-GB'
-        self.speech_rate = 0.3
-        
+
     def display_message(self, message):
         """Display any warnings or errors to the user."""
 
@@ -32,8 +30,8 @@ class Menu:
         self.message_dialog['label1'].text = message
         self.message_dialog.present('popover', popover_location=(500, 500))
 
-    def say_message(self, message):
-        speech.say(message, self.language, self.speech_rate)
+#    def say_message(self, message):
+#        speech.say(message, self.language, self.speech_rate)
 
     def show_tasks(self, sender, tasks=None):
         """Display the tasks (in ID order)
@@ -67,9 +65,11 @@ class Menu:
         """
 
         def task_as_str(task):
+
             return '{}: {}\n\tTags: {}'.format(task.id, task.note, task.tags)
 
         def priority_text(priority, tasks):
+
             text = '{}:\n{}\n'.format(priority, '-' * 20)
             new_tasks = [task_as_str(t) for t in tasks
                              if t.priority == priority]
@@ -153,7 +153,6 @@ class Menu:
 
         self.delete_dialog = ui.load_view('dialogs/delete_task')
         self.delete_dialog['txt_del_task'].begin_editing()
-        td = self
         self.delete_dialog['txt_del_task'].delegate = self
         self.delete_dialog.present('popover', popover_location=(500, 500))
 
@@ -189,12 +188,7 @@ class Menu:
             self.modify_dialog = ui.load_view('dialogs/modify_task')
             self.modify_dialog['txt_mod_task'].delegate = self
             self.modify_dialog['txt_mod_task'].text = self.current_task.note
-            if self.current_task.priority == 'Low':
-                self.modify_dialog['segmentedcontrol1'].selected_index = 0
-            if self.current_task.priority == 'Medium':
-                self.modify_dialog['segmentedcontrol1'].selected_index = 1
-            if self.current_task.priority == 'High':
-                self.modify_dialog['segmentedcontrol1'].selected_index = 2
+            self.modify_dialog['segmentedcontrol1'].selected_index = ['Low', 'Medium', 'High'].index(self.current_task.priority)
             self.modify_dialog['txt_mod_tags'].text = self.current_task.tags
             self.modify_dialog.present('popover', popover_location=(500, 500))
 
@@ -258,6 +252,8 @@ class Menu:
     def prompt_speak(self, sender):
         """Prompt the user for the task(s) to speak."""
 
+        self.speech_rate = 0.3
+        self.language = 'en-GB'
         self.prompt_dialog = ui.load_view('dialogs/speak_task_number')
         self.prompt_dialog['button_select'].enabled = False
         self.prompt_dialog['txt_speak_number'].delegate = self
@@ -268,14 +264,17 @@ class Menu:
     def display_speak_options(self, sender):
         """Display the controls to enter a number"""
 
+        # if 'recite a task' is selected, reveal  the appropriate controls
         if self.prompt_dialog['segmentedcontrol1'].selected_index == 0:
             self.prompt_dialog['label1'].hidden = False
             self.prompt_dialog['txt_speak_number'].hidden = False
+            # if no task number is provided, disable the button
             if self.prompt_dialog['txt_speak_number'].text == '':
                 self.prompt_dialog['button_select'].enabled = False
             else:
                 self.prompt_dialog['button_select'].enabled = True
         else:
+            # otherwise, hide them
             self.prompt_dialog['label1'].hidden = True
             self.prompt_dialog['txt_speak_number'].hidden = True
             self.prompt_dialog['button_select'].enabled = True
@@ -395,21 +394,25 @@ class Menu:
         self.speech_rate = float(self.prompt_dialog['label_rate'].text)
 
     def textfield_did_change(self, textfield):
+        """Handle when a text field changes."""
+
         if textfield.name == 'txt_speak_number':
             view = textfield.superview
             button = view['button_select']
             button.enabled = textfield.text != ''
-        if textfield.name == 'txt_add_task':
+        elif textfield.name == 'txt_add_task':
             view = textfield.superview
             button = view['button_save']
             button.enabled = textfield.text != ''
-        if textfield.name == 'txt_mod_task':
+        elif textfield.name == 'txt_mod_task':
             view = textfield.superview
             button = view['button_save']
             button.enabled = textfield.text != ''
-            
-        
+
+
     def textfield_should_return(self, textfield):
+        """Function that should be executed when Enter is pressed."""
+
         if textfield.name == 'txt_speak_number':
             self.process_speak_request(None)
         elif textfield.name == 'txt_search':
@@ -425,6 +428,7 @@ class Menu:
         return True
 
     def run(self):
+        """Let's get the party started!"""
 
         self.main_view = ui.load_view('menu')
         buttons = 'number priority save delete_task modify search speak'
